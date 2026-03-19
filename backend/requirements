@@ -1,0 +1,18 @@
+Requirements:
+
+1. Input player name and character.
+2. Get list of available players.
+3. Select player.
+4. Receive:
+Name, 
+Matches played
+Current Rating,
+#rank,
+Highest Rating,
+Highest #rank,
+
+Platform,
+top global,
+avatar,
+
+

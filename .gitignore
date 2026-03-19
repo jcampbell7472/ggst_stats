@@ -5,6 +5,9 @@ node_modules/
 .vscode/
 .DS_Store
 
+commands.txt
+requests.http
+
 HELP.md
 target/
 .mvn/wrapper/maven-wrapper.jar
