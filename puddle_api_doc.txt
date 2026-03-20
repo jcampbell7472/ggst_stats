@@ -1,0 +1,275 @@
+puddle.farm API (Simplified Documentation)
+=========================================
+
+Base URL:
+https://puddle.farm/api
+
+
+=====================
+CORE ENDPOINTS
+=====================
+
+1. GET /player/{id}
+-------------------
+Description:
+Get full player data.
+
+Response: PlayerResponse
+{
+  id: long,
+  name: string,
+  platform: string,
+  status: string,
+  top_global: int,
+
+  ratings: [PlayerRating],
+  tags: [Tag]
+}
+
+PlayerRating:
+{
+  rating: float,
+  deviation: float | null,
+  char_short: string,
+  character: string,
+  match_count: int,
+  top_char: int,
+
+  top_rating: TopRating,
+  top_defeated: TopDefeated
+}
+
+TopRating:
+{
+  timestamp: string,
+  value: float,
+  deviation: float
+}
+
+
+2. GET /player/search
+----------------------
+Query Params:
+- search_string (string, required)
+- exact (boolean, optional)
+
+Response: SearchResponse
+{
+  results: [SearchPlayer]
+}
+
+SearchPlayer:
+{
+  id: long,
+  name: string,
+  rating: float | null,
+  deviation: float | null,
+  char_short: string,
+  char_long: string
+}
+
+
+3. GET /player/{player_id}/{char_id}/history
+--------------------------------------------
+Query Params:
+- count (int, default 100)
+- offset (int, default 0)
+
+Response: PlayerGamesResponse
+{
+  history: [PlayerSet],
+  tags: { player_id: [Tag] }
+}
+
+PlayerSet:
+{
+  timestamp: string,
+  own_rating_value: float,
+  own_rating_deviation: float,
+  floor: string,
+
+  opponent_name: string,
+  opponent_platform: string,
+  opponent_id: long,
+  opponent_character: string,
+  opponent_character_short: string,
+  opponent_rating_value: float,
+  opponent_rating_deviation: float,
+
+  result_win: boolean,
+  odds: float
+}
+
+
+4. GET /ratings/{player_id}/{char_id}/{duration}
+------------------------------------------------
+Response: array of RatingHistory
+{
+  timestamp: string,
+  rating: float
+}
+
+
+5. GET /avatar/{player_id}
+--------------------------
+Response:
+- image/png (binary)
+
+
+6. GET /top
+   GET /top_char/{char_id}
+--------------------------
+Response: RankResponse
+{
+  ranks: [PlayerRank]
+}
+
+PlayerRank:
+{
+  rank: int,
+  id: long,
+  name: string,
+  rating: float,
+  deviation: float,
+  char_short: string,
+  char_long: string,
+  tags: [Tag]
+}
+
+
+=====================
+EXTRA ENDPOINTS
+=====================
+
+GET /characters
+---------------
+Response:
+[
+  [string]
+]
+
+
+GET /stats
+----------
+{
+  timestamp: string,
+
+  total_games: long,
+  one_month_games: long,
+  one_week_games: long,
+  one_day_games: long,
+  one_hour_games: long,
+
+  total_players: long,
+  one_month_players: long,
+  one_week_players: long,
+  one_day_players: long,
+  one_hour_players: long
+}
+
+
+GET /popularity
+---------------
+{
+  per_player: [ { name: string, value: long } ],
+  per_character: [ { name: string, value: long } ],
+
+  per_player_total: long,
+  per_character_total: long,
+  last_update: string
+}
+
+
+GET /matchups
+GET /matchups/{player_id}/{char_id}/{duration}
+----------------------------------------------
+MatchupChar:
+{
+  char_name: string,
+  char_short: string,
+  matchups: [MatchupEntry]
+}
+
+MatchupEntry:
+{
+  char_name: string,
+  char_short: string,
+  wins: long,
+  total_games: long
+}
+
+
+GET /distribution
+-----------------
+{
+  timestamp: string,
+  data: {
+    distribution_floor: [[long]],
+    one_month_players: long,
+    distribution_rating: [object]
+  }
+}
+
+
+GET /calc_rating
+----------------
+Query Params:
+- rating_a (float)
+- drift_a (float > 1)
+- rating_b (float)
+- drift_b (float > 1)
+- a_wins (boolean)
+
+Response:
+{
+  rating_a_new: float,
+  drift_a_new: float,
+  rating_b_new: float,
+  drift_b_new: float,
+  win_prob: float
+}
+
+
+=====================
+COMMON OBJECTS
+=====================
+
+Tag:
+{
+  tag: string,
+  style: string
+}
+
+Supporter:
+{
+  id: long,
+  name: string,
+  tags: [Tag]
+}
+
+
+=====================
+IMPORTANT NOTES
+=====================
+
+- Some numeric fields can be null (especially deviation, rating in search)
+- Always use wrapper types (Integer, Double) instead of primitives
+- Scientific notation may appear (e.g. 1.00015E7 = 10001500)
+- Not all fields are guaranteed to be present
+- ratings[] only contains characters the player has used
+
+
+=====================
+MINIMUM REQUIRED FOR YOUR APP
+=====================
+
+1. /player/search → get player ID
+2. /player/{id} → get:
+   - ratings (per character)
+   - match_count
+   - rating
+   - top_char
+   - top_rating
+   - platform
+   - top_global
+3. /avatar/{id} → player image
