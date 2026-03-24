@@ -15,7 +15,8 @@ public class PlayerDTO {
     @JsonProperty("top_global")
     private Integer topGlobal;
 
-    public PlayerDTO() {}
+    public PlayerDTO() {
+    }
 
     public void setRatings(List<RatingDTO> ratings) {
         this.ratings = ratings;
@@ -44,13 +45,22 @@ public class PlayerDTO {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("Player{");
-        sb.append("\nid=").append(id);
-        sb.append(",\n name=").append(name);
-        sb.append(",\n ratings=").append(ratings);
-        sb.append(",\n platform=").append(platform);
-        sb.append(",\n topGlobal=").append(topGlobal);
-        sb.append('}');
+
+        sb.append("=== PLAYER ===\n");
+        sb.append("Name: ").append(name).append("\n");
+        sb.append("ID: ").append(id).append("\n");
+        sb.append("Platform: ").append(platform).append("\n");
+        sb.append("Top Global: ").append(topGlobal).append("\n");
+
+        sb.append("\n--- Ratings ---\n");
+        if (ratings != null && !ratings.isEmpty()) {
+            for (RatingDTO r : ratings) {
+                sb.append(r).append("\n");
+            }
+        } else {
+            sb.append("No ratings available\n");
+        }
+
         return sb.toString();
     }
 

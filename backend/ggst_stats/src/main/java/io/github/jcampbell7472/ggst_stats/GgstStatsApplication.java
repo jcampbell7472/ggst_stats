@@ -2,13 +2,15 @@ package io.github.jcampbell7472.ggst_stats;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.web.bind.annotation.RestController;
+
+import io.github.jcampbell7472.ggst_stats.bot.DiscordBot;
 
 @SpringBootApplication
-@RestController
 public class GgstStatsApplication {
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws Exception {
 		SpringApplication.run(GgstStatsApplication.class, args);
+
+		DiscordBot.start();
 	}
 }
