@@ -1,20 +1,36 @@
+# Build
 target/
+build/
+
+# Node
 node_modules/
+
+# Env / secrets
 .env
+**/application-local.properties
+
+# IDEs
 .idea/
 .vscode/
+
+# OS
 .DS_Store
 
+# Misc
 commands.txt
 requests.http
-
 HELP.md
-target/
+
+# Maven wrapper
 .mvn/wrapper/maven-wrapper.jar
+
+# Allow nested targets/builds
 !**/src/main/**/target/
 !**/src/test/**/target/
+!**/src/main/**/build/
+!**/src/test/**/build/
 
-### STS ###
+# Java IDE junk
 .apt_generated
 .classpath
 .factorypath
@@ -23,21 +39,9 @@ target/
 .springBeans
 .sts4-cache
 
-### IntelliJ IDEA ###
-.idea
-*.iws
-*.iml
-*.ipr
-
-### NetBeans ###
+# NetBeans
 /nbproject/private/
 /nbbuild/
 /dist/
 /nbdist/
 /.nb-gradle/
-build/
-!**/src/main/**/build/
-!**/src/test/**/build/
-
-### VS Code ###
-.vscode/
