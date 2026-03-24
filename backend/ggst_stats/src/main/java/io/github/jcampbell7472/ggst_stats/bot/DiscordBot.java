@@ -11,21 +11,26 @@ import net.dv8tion.jda.api.interactions.commands.build.Commands;
 @Component
 public class DiscordBot {
 
-        @Value("${discord.token}")
-        private String token;
+    private final SlashCommandListener listener;
 
-        public void start() throws Exception {
-                JDA jda = JDABuilder.createDefault(token)
-                                .addEventListeners(new SlashCommandListener())
-                                .build();
+    @Value("${discord.token}")
+    private String token;
 
-                jda.awaitReady();
+    public DiscordBot(SlashCommandListener listener) {
+        this.listener = listener;
+    }
 
-                // register command
-                jda.updateCommands().addCommands(
-                                Commands.slash("player", "Get player stats")
-                                                .addOption(OptionType.STRING, "name", "Player name", true))
-                                .queue();
+    public void start() throws Exception {
+        JDA jda = JDABuilder.createDefault(token)
+                .addEventListeners(listener)
+                .build();
 
-        }
+        jda.awaitReady();
+
+        // Register slash command
+        jda.updateCommands().addCommands(
+                Commands.slash("player", "Get player stats")
+                        .addOption(OptionType.STRING, "name", "Player name", true)
+        ).queue();
+    }
 }

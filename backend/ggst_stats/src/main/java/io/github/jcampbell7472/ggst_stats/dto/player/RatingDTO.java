@@ -120,12 +120,12 @@ public class RatingDTO {
         StringBuilder sb = new StringBuilder();
         sb.append("RatingDTO{");
         sb.append("rating=").append(rating);
+        sb.append(", rank=").append(rank);
         sb.append(", charShort=").append(charShort);
         sb.append(", character=").append(character);
         sb.append(", matchCount=").append(matchCount);
         sb.append(", topChar=").append(topChar);
         sb.append(", topRating=").append(topRating);
-        sb.append(", rank=").append(rank);
         sb.append('}');
         return sb.toString();
     }
