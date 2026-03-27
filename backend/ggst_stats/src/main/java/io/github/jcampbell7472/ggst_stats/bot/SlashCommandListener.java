@@ -53,7 +53,7 @@ public class SlashCommandListener extends ListenerAdapter {
         event.replyEmbeds(embed.build())
                 .addFiles(
                         characterFile(session.getCurrentRating().getCharShort()),
-                        rankFile(session.getCurrentRating().getTopRating().getRank()))
+                        rankFile(session.getCurrentRating().getRank()))
                 .addActionRow(
                         Button.primary("prev", "⬅️"),
                         Button.primary("next", "➡️"))
@@ -84,7 +84,7 @@ public class SlashCommandListener extends ListenerAdapter {
         event.editMessageEmbeds(embed.build())
                 .setFiles(
                         characterFile(rating.getCharShort()),
-                        rankFile(rating.getTopRating().getRank()))
+                        rankFile(rating.getRank()))
                 .queue();
     }
 
@@ -98,15 +98,17 @@ public class SlashCommandListener extends ListenerAdapter {
         embed.setDescription("Character " + (session.getIndex() + 1) +
                 "/" + player.getRatings().size());
 
-        embed.addField("Rank", rating.getTopRating().getRank(), true);
-        embed.addField("Rating", String.valueOf(rating.getRating()), true);
+        embed.addField("Rank", rating.getRank(), true);
+        embed.addField("Rating", String.valueOf(Math.round(rating.getRating())), true);
         embed.addField("Matches", String.valueOf(rating.getMatchCount()), true);
+
+        embed.addField("Top Rating", String.valueOf(Math.round(rating.getTopRating().getValue())) + " - " + rating.getTopRating().getTimestamp(), false);
 
         embed.setThumbnail("attachment://rank.png");
         embed.setImage("attachment://character.png");
 
-        embed.setColor(getRankColor(rating.getTopRating().getRank()));
-        embed.setFooter("GGST Stats");
+        embed.setColor(getRankColor(rating.getRank()));
+        embed.setFooter("Data provided by puddle.farm API");
 
         return embed;
     }
@@ -134,7 +136,7 @@ public class SlashCommandListener extends ListenerAdapter {
     }
 
     private FileUpload rankFile(String rank) {
-        String fileName = rank == null ? "unknown.png" : rank.toLowerCase().replace(" ", "") + ".png";
+        String fileName = rank == null ? "placement.png" : rank.toLowerCase().replace(" ", "") + ".png";
         String path = "/images/ranks/" + fileName;
         return FileUpload.fromData(
                 getClass().getResourceAsStream(path),

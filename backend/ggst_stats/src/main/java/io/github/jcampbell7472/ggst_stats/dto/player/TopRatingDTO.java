@@ -20,6 +20,19 @@ public class TopRatingDTO {
     public TopRatingDTO() {
     }
 
+    @JsonSetter("timestamp")
+    public void setTimestamp(String timestamp) {
+        int spaceIndex = timestamp.indexOf(' ');
+
+        String result;
+        if (spaceIndex != -1) {
+            result = timestamp.substring(0, spaceIndex); // everything before the first space
+        } else {
+            result = timestamp; // no space, keep the whole string
+        }
+        this.timestamp = result;
+    }
+
     public String getTimestamp() {
         return timestamp;
     }
@@ -43,14 +56,14 @@ public class TopRatingDTO {
         }
     }
 
-     // method to check that the value is vanquisher or not
+    // method to check that the value is vanquisher or not
     public boolean checkVanquisher(Float value) {
         return value != null && value > 1_000_000;
     }
 
     private String checkRank(Float value) {
         if (value == null)
-            return "Unknown";
+            return "Placement";
 
         if (value >= 40800)
             return "Diamond 3";
@@ -94,7 +107,7 @@ public class TopRatingDTO {
         else if (value >= 1)
             return "Iron 1";
 
-        return "Unknown";
+        return "Placement";
     }
 
     @Override
@@ -107,6 +120,5 @@ public class TopRatingDTO {
         sb.append('}');
         return sb.toString();
     }
-
 
 }

@@ -40,7 +40,7 @@ public class RatingDTO {
 
     private String checkRank(Float rating) {
         if (rating == null)
-            return "Unknown";
+            return "Placement";
 
         if (rating >= 40800)
             return "Diamond 3";
@@ -84,7 +84,7 @@ public class RatingDTO {
         else if (rating >= 1)
             return "Iron 1";
 
-        return "Unknown";
+        return "Placement";
     }
 
     public Float getRating() {
