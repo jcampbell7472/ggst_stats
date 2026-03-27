@@ -1,4 +1,4 @@
-package io.github.jcampbell7472.ggst_stats.bot;
+package io.github.jcampbell7472.ggst_stats.bot.commands;
 
 import io.github.jcampbell7472.ggst_stats.dto.player.PlayerDTO;
 import io.github.jcampbell7472.ggst_stats.dto.player.RatingDTO;

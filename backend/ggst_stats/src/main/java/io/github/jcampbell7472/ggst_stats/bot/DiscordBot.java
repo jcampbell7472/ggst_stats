@@ -11,16 +11,20 @@ import net.dv8tion.jda.api.interactions.commands.build.Commands;
 @Component
 public class DiscordBot {
 
+    //instantiate SlashCommandListener needed for bot's slash commands
     private final SlashCommandListener listener;
 
+    //bot token set in application-local.properties
     @Value("${discord.token}")
     private String token;
 
     public DiscordBot(SlashCommandListener listener) {
-        this.listener = listener;
+        this.listener = listener; //inject listener
     }
 
+    //starts the bot
     public void start() throws Exception {
+        //start up JDA instance
         JDA jda = JDABuilder.createDefault(token)
                 .addEventListeners(listener)
                 .build();
