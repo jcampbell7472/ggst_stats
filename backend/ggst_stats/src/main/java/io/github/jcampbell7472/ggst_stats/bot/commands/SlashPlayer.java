@@ -1,6 +1,5 @@
 package io.github.jcampbell7472.ggst_stats.bot.commands;
 
-import java.awt.Color;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.stereotype.Component;
@@ -8,7 +7,8 @@ import org.springframework.stereotype.Component;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 
-import io.github.jcampbell7472.ggst_stats.bot.AssetUrls;
+import io.github.jcampbell7472.ggst_stats.bot.Assets;
+import io.github.jcampbell7472.ggst_stats.bot.BotMessages;
 import io.github.jcampbell7472.ggst_stats.client.ApiClient;
 import io.github.jcampbell7472.ggst_stats.dto.player.PlayerDTO;
 import io.github.jcampbell7472.ggst_stats.dto.player.RatingDTO;
@@ -23,10 +23,11 @@ import net.dv8tion.jda.api.interactions.components.buttons.Button;
 public class SlashPlayer implements SlashCommand {
 
     private final ApiClient apiClient; // instantiate ApiClient
-    private final Cache<String, PlayerSession> sessions = Caffeine.newBuilder()// cache to store a PlayerSession(stores player, index, total ratings)
-        .expireAfterAccess(5, TimeUnit.MINUTES)
-        .maximumSize(500)
-        .build();
+    private final Cache<String, PlayerSession> sessions = Caffeine.newBuilder()// cache to store a PlayerSession(stores
+                                                                               // player, index, total ratings)
+            .expireAfterAccess(1, TimeUnit.MINUTES)
+            .maximumSize(500)
+            .build();
 
     public SlashPlayer(ApiClient apiClient) {
         this.apiClient = apiClient; // ApiClient is injected
@@ -49,7 +50,7 @@ public class SlashPlayer implements SlashCommand {
 
         // check if the name exists
         if (playerList == null || playerList.getResults() == null || playerList.getResults().isEmpty()) {
-            event.reply("Player not found").queue();
+            BotMessages.sendError(event.getHook(), "Player not found");
             return;
         }
 
@@ -71,10 +72,15 @@ public class SlashPlayer implements SlashCommand {
 
     @Override
     public void handleButton(ButtonInteractionEvent event) {
+
         PlayerSession session = sessions.getIfPresent(event.getMessageId());
 
-        if (session == null)
+        if (session == null) {
+            event.deferReply(true).queue(hook -> {
+                BotMessages.sendError(hook, "This session has expired.");
+            });
             return;
+        }
 
         if (event.getButton().getId().equals("player:next")) {
             session.next();
@@ -83,8 +89,6 @@ public class SlashPlayer implements SlashCommand {
         }
 
         EmbedBuilder embed = buildEmbed(session);
-
-        RatingDTO rating = session.getCurrentRating();
 
         event.editMessageEmbeds(embed.build())
                 .queue();
@@ -107,35 +111,13 @@ public class SlashPlayer implements SlashCommand {
         embed.addField("Top Rating", String.valueOf(Math.round(rating.getTopRating().getValue())) + " - "
                 + rating.getTopRating().getTimestamp(), false);
 
-        embed.setThumbnail(AssetUrls.RANK_URLS.get(rating.getRank()));
-        embed.setImage(AssetUrls.CHARACTER_URLS.get(rating.getCharShort()));
+        embed.setThumbnail(Assets.RANK_URLS.get(rating.getRank()));
+        embed.setImage(Assets.CHARACTER_URLS.get(rating.getCharShort()));
 
-        embed.setColor(getRankColor(rating.getRank()));
+        embed.setColor(Assets.getRankColor(rating.getRank()));
         embed.setFooter("Data provided by puddle.farm API");
 
         return embed;
-    }
-
-    private Color getRankColor(String rank) {
-        if (rank == null)
-            return Color.GRAY;
-
-        if (rank.contains("Diamond"))
-            return Color.CYAN;
-        if (rank.contains("Platinum"))
-            return Color.GREEN;
-        if (rank.contains("Gold"))
-            return Color.YELLOW;
-        if (rank.contains("Silver"))
-            return Color.LIGHT_GRAY;
-        if (rank.contains("Bronze"))
-            return new Color(205, 127, 50);
-        if (rank.contains("Iron"))
-            return Color.DARK_GRAY;
-        if (rank.contains("Vanquisher"))
-            return Color.MAGENTA;
-
-        return Color.WHITE;
     }
 
 

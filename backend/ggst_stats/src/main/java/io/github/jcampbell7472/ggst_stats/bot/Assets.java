@@ -1,12 +1,13 @@
 
 package io.github.jcampbell7472.ggst_stats.bot;
 
+import java.awt.Color;
 import java.util.Map;
 
 import org.springframework.stereotype.Component;
 
 @Component
-public class AssetUrls {
+public class Assets {
 
     public static final Map<String, String> CHARACTER_URLS = Map.ofEntries(
             Map.entry("AN",
@@ -115,5 +116,28 @@ public class AssetUrls {
                     "https://cdn.discordapp.com/attachments/1487399812650238094/1487401262579191909/diamond3.png.png?ex=69c901df&is=69c7b05f&hm=6203cb3bee99bb8b37e6fe9a8527ccb97b722482e934f581e1e50f5b82b2fe13&"),
             Map.entry("Vanquisher",
                     "https://cdn.discordapp.com/attachments/1487399812650238094/1487401265238376642/vanquisher.png.png?ex=69c901e0&is=69c7b060&hm=222d286517b8f077c1798f342c7321d53eaa4e3e58593d75856afc1ec0a2693d&"));
+
+
+private static final Map<String, Color> RANK_COLORS = Map.of(
+        "Diamond", Color.CYAN,
+        "Platinum", Color.GREEN,
+        "Gold", Color.YELLOW,
+        "Silver", Color.LIGHT_GRAY,
+        "Bronze", new Color(205, 127, 50),
+        "Iron", Color.DARK_GRAY,
+        "Vanquisher", Color.MAGENTA
+);
+
+public static Color getRankColor(String rank) {
+    if (rank == null) {
+        return Color.GRAY;
+    }
+
+    return RANK_COLORS.entrySet().stream()
+            .filter(e -> rank.contains(e.getKey()))
+            .map(Map.Entry::getValue)
+            .findFirst()
+            .orElse(Color.WHITE);
+}
 
 }
