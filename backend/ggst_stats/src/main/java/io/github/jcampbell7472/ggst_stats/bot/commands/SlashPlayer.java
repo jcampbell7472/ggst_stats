@@ -1,11 +1,14 @@
 package io.github.jcampbell7472.ggst_stats.bot.commands;
 
 import java.awt.Color;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.stereotype.Component;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+
+import io.github.jcampbell7472.ggst_stats.bot.AssetUrls;
 import io.github.jcampbell7472.ggst_stats.client.ApiClient;
 import io.github.jcampbell7472.ggst_stats.dto.player.PlayerDTO;
 import io.github.jcampbell7472.ggst_stats.dto.player.RatingDTO;
@@ -15,67 +18,67 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
-import net.dv8tion.jda.api.utils.FileUpload;
 
 @Component
 public class SlashPlayer implements SlashCommand {
 
-    //instantiate ApiClient
-    private final ApiClient apiClient;
-    //map to store a PlayerSession(stores player, index, total ratings)
-    private final Map<String, PlayerSession> sessions = new HashMap<>();
+    private final ApiClient apiClient; // instantiate ApiClient
+    private final Cache<String, PlayerSession> sessions = Caffeine.newBuilder()// cache to store a PlayerSession(stores player, index, total ratings)
+        .expireAfterAccess(5, TimeUnit.MINUTES)
+        .maximumSize(500)
+        .build();
 
     public SlashPlayer(ApiClient apiClient) {
-        this.apiClient = apiClient;
+        this.apiClient = apiClient; // ApiClient is injected
     }
 
+    // this method is needed in SlashCommandListener to map SlashCommands
     @Override
-    public String getName(){
+    public String getName() {
         return "player";
     }
 
+    // method called when /player command is used
     @Override
-    public void handleSlash(SlashCommandInteractionEvent event){
-        String name = event.getOption("name").getAsString();
+    public void handleSlash(SlashCommandInteractionEvent event) {
+        event.deferReply().queue();
 
-        SearchPlayerListDTO playerList = apiClient.searchPlayers(name);
+        String name = event.getOption("name").getAsString(); // get the user input
 
+        SearchPlayerListDTO playerList = apiClient.searchPlayers(name); // search for the name that the user inputted
+
+        // check if the name exists
         if (playerList == null || playerList.getResults() == null || playerList.getResults().isEmpty()) {
             event.reply("Player not found").queue();
             return;
         }
 
-        SearchPlayerDTO search = playerList.getResults().get(0);
-        PlayerDTO player = apiClient.getPlayerData(search.getId());
+        SearchPlayerDTO search = playerList.getResults().get(0); // get the first result from the search
+        PlayerDTO player = apiClient.getPlayerData(search.getId()); // use the player's id to get their player data
 
         PlayerSession session = new PlayerSession(player);
 
         EmbedBuilder embed = buildEmbed(session);
 
-        event.replyEmbeds(embed.build())
-                .addFiles(
-                        characterFile(session.getCurrentRating().getCharShort()),
-                        rankFile(session.getCurrentRating().getRank()))
+        event.getHook().sendMessageEmbeds(embed.build())
                 .addActionRow(
                         Button.primary("player:prev", "⬅️"),
                         Button.primary("player:next", "➡️"))
-                .queue(hook -> {
-                    hook.retrieveOriginal().queue(message -> {
-                        sessions.put(message.getId(), session);
-                    });
+                .queue(message -> {
+                    sessions.put(message.getId(), session);
                 });
-    }
+    };
 
     @Override
-    public void handleButton(ButtonInteractionEvent event){
-        PlayerSession session = sessions.get(event.getMessageId());
+    public void handleButton(ButtonInteractionEvent event) {
+        PlayerSession session = sessions.getIfPresent(event.getMessageId());
 
         if (session == null)
             return;
 
-        if (event.getButton().getId().equals("next")) {
+        if (event.getButton().getId().equals("player:next")) {
             session.next();
-        } else if (event.getButton().getId().equals("prev")) {
+        } else if (event.getButton().getId().equals("player:prev")) {
             session.prev();
         }
 
@@ -84,9 +87,6 @@ public class SlashPlayer implements SlashCommand {
         RatingDTO rating = session.getCurrentRating();
 
         event.editMessageEmbeds(embed.build())
-                .setFiles(
-                        characterFile(rating.getCharShort()),
-                        rankFile(rating.getRank()))
                 .queue();
     }
 
@@ -104,10 +104,11 @@ public class SlashPlayer implements SlashCommand {
         embed.addField("Rating", String.valueOf(Math.round(rating.getRating())), true);
         embed.addField("Matches", String.valueOf(rating.getMatchCount()), true);
 
-        embed.addField("Top Rating", String.valueOf(Math.round(rating.getTopRating().getValue())) + " - " + rating.getTopRating().getTimestamp(), false);
+        embed.addField("Top Rating", String.valueOf(Math.round(rating.getTopRating().getValue())) + " - "
+                + rating.getTopRating().getTimestamp(), false);
 
-        embed.setThumbnail("attachment://rank.png");
-        embed.setImage("attachment://character.png");
+        embed.setThumbnail(AssetUrls.RANK_URLS.get(rating.getRank()));
+        embed.setImage(AssetUrls.CHARACTER_URLS.get(rating.getCharShort()));
 
         embed.setColor(getRankColor(rating.getRank()));
         embed.setFooter("Data provided by puddle.farm API");
@@ -137,61 +138,5 @@ public class SlashPlayer implements SlashCommand {
         return Color.WHITE;
     }
 
-    private FileUpload rankFile(String rank) {
-        String fileName = rank == null ? "placement.png" : rank.toLowerCase().replace(" ", "") + ".png";
-        String path = "/images/ranks/" + fileName;
-        return FileUpload.fromData(
-                getClass().getResourceAsStream(path),
-                "rank.png");
-    }
-
-    private FileUpload characterFile(String shortCode) {
-        String fileName = getCharacterFile(shortCode); // only filename
-        String path = "/images/characters/" + fileName; // add folder here
-        return FileUpload.fromData(
-                getClass().getResourceAsStream(path),
-                "character.png");
-    }
-
-    private String getCharacterFile(String charShort) {
-        if (charShort == null)
-            return "unknown.png";
-
-        return switch (charShort) {
-            case "AN" -> "anji.png";
-            case "AX" -> "axl.png";
-            case "LE" -> "leo.png";
-            case "MI" -> "millia.png";
-            case "GO" -> "goldlewis.png";
-            case "BE" -> "bedman.png";
-            case "SL" -> "slayer.png";
-            case "SI" -> "sin.png";
-            case "TE" -> "testament.png";
-            case "UN" -> "unika.png";
-            case "CH" -> "chipp.png";
-            case "ZA" -> "zato.png";
-            case "PO" -> "potemkin.png";
-            case "EL" -> "elphelt.png";
-            case "BA" -> "baiken.png";
-            case "LU" -> "lucy.png";
-            case "AB" -> "aba.png";
-            case "JN" -> "johnny.png";
-            case "IN" -> "ino.png";
-            case "NA" -> "nagoriyuki.png";
-            case "KY" -> "ky.png";
-            case "HA" -> "happychaos.png";
-            case "MA" -> "may.png";
-            case "JC" -> "jacko.png";
-            case "SO" -> "sol.png";
-            case "DI" -> "dizzy.png";
-            case "FA" -> "faust.png";
-            case "RA" -> "ramlethal.png";
-            case "AS" -> "asuka.png";
-            case "GI" -> "giovanna.png";
-            case "VE" -> "venom.png";
-            case "BI" -> "bridget.png";
-            default -> "unknown.png";
-        };
-    }
 
 }

@@ -14,26 +14,38 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 @Component
 public class SlashCommandListener extends ListenerAdapter {
 
+    //map of all SlashCommands, collected by Spring. Key taken from SlashCommand.getName
     private final Map<String, SlashCommand> commands = new HashMap<>();
 
+    //injects all SlashCommands into commands map
     public SlashCommandListener(List<SlashCommand> commandList) {
         for (SlashCommand cmd : commandList) {
             commands.put(cmd.getName(), cmd);
         }
     }
 
+    //called every time a slash command is used
     @Override
     public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
-        SlashCommand cmd = commands.get(event.getName());
+        SlashCommand cmd = commands.get(event.getName()); //get the command from commands map corresponding to the name of the event
         if (cmd != null) {
-            cmd.handleSlash(event);
+            cmd.handleSlash(event); //call handleSlash of that command, passing the event
         }
     }
 
+    //called when a button interaction is used
     @Override
     public void onButtonInteraction(ButtonInteractionEvent event) {
-        for (SlashCommand cmd : commands.values()) {
-            cmd.handleButton(event);
+        String id = event.getButton().getId(); //get the id of the button as a String
+
+        if (id == null || !id.contains(":")) //check that the button is not null and contains ":"
+            return;
+
+        String commandName = id.split(":")[0]; //get the buttons SlashCommand name, e.g. "player:prev" will be "player"
+
+        SlashCommand cmd = commands.get(commandName); //get the corresponding SlashCommand from the commands map
+        if (cmd != null) {
+            cmd.handleButton(event); //call handleButton of that command
         }
     }
 }

@@ -12,21 +12,23 @@ import net.dv8tion.jda.api.interactions.commands.build.Commands;
 public class DiscordBot {
 
     //instantiate SlashCommandListener needed for bot's slash commands
-    private final SlashCommandListener listener;
+    private final SlashCommandListener slashListener;
+    private final AssetManager assetManager; //only used to upload images initially
 
     //bot token set in application-local.properties
     @Value("${discord.token}")
     private String token;
 
-    public DiscordBot(SlashCommandListener listener) {
-        this.listener = listener; //inject listener
+    public DiscordBot(SlashCommandListener slashListener, AssetManager assetManager) {
+        this.slashListener = slashListener; //inject listeners
+        this.assetManager = assetManager;
     }
 
     //starts the bot
     public void start() throws Exception {
         //start up JDA instance
         JDA jda = JDABuilder.createDefault(token)
-                .addEventListeners(listener)
+                .addEventListeners(slashListener) //add assetManager too if needed
                 .build();
 
         jda.awaitReady();
