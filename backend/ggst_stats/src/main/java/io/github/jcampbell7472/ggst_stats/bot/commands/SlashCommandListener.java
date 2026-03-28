@@ -1,4 +1,4 @@
-package io.github.jcampbell7472.ggst_stats.bot;
+package io.github.jcampbell7472.ggst_stats.bot.commands;
 
 import java.util.HashMap;
 import java.util.List;
@@ -6,7 +6,6 @@ import java.util.Map;
 
 import org.springframework.stereotype.Component;
 
-import io.github.jcampbell7472.ggst_stats.bot.commands.SlashCommand;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;

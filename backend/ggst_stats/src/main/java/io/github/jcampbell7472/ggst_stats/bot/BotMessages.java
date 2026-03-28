@@ -16,7 +16,7 @@ public final class BotMessages {
                 .setColor(Color.RED);
 
         hook.sendMessageEmbeds(embed.build())
-            .setEphemeral(true)
+            .setEphemeral(false)
             .queue();
     }
 }

@@ -3,6 +3,7 @@ package io.github.jcampbell7472.ggst_stats.bot;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import io.github.jcampbell7472.ggst_stats.bot.commands.SlashCommandListener;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.interactions.commands.OptionType;

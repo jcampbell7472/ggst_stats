@@ -1,4 +1,4 @@
-package io.github.jcampbell7472.ggst_stats.bot.commands;
+package io.github.jcampbell7472.ggst_stats.bot.commands.player;
 
 import java.util.concurrent.TimeUnit;
 
@@ -9,6 +9,7 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 
 import io.github.jcampbell7472.ggst_stats.bot.Assets;
 import io.github.jcampbell7472.ggst_stats.bot.BotMessages;
+import io.github.jcampbell7472.ggst_stats.bot.commands.SlashCommand;
 import io.github.jcampbell7472.ggst_stats.client.ApiClient;
 import io.github.jcampbell7472.ggst_stats.dto.player.PlayerDTO;
 import io.github.jcampbell7472.ggst_stats.dto.player.RatingDTO;
@@ -17,15 +18,15 @@ import io.github.jcampbell7472.ggst_stats.dto.search.SearchPlayerListDTO;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
+import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 
 @Component
 public class SlashPlayer implements SlashCommand {
 
     private final ApiClient apiClient; // instantiate ApiClient
-    private final Cache<String, PlayerSession> sessions = Caffeine.newBuilder()// cache to store a PlayerSession(stores
-                                                                               // player, index, total ratings)
-            .expireAfterAccess(1, TimeUnit.MINUTES)
+    private final Cache<String, PlayerSession> sessions = Caffeine.newBuilder()// cache to store a PlayerSession(stores player, index, total ratings)
+            .expireAfterAccess(5, TimeUnit.MINUTES)
             .maximumSize(500)
             .build();
 
@@ -42,9 +43,16 @@ public class SlashPlayer implements SlashCommand {
     // method called when /player command is used
     @Override
     public void handleSlash(SlashCommandInteractionEvent event) {
-        event.deferReply().queue();
+        event.deferReply().queue(); // defer reply to avoid timeout
 
-        String name = event.getOption("name").getAsString(); // get the user input
+        OptionMapping nameOption = event.getOption("name");
+
+        if (nameOption == null) {
+            BotMessages.sendError(event.getHook(), "Name option missing.");
+            return;
+        }
+
+        String name = nameOption.getAsString();
 
         SearchPlayerListDTO playerList = apiClient.searchPlayers(name); // search for the name that the user inputted
 
@@ -57,7 +65,12 @@ public class SlashPlayer implements SlashCommand {
         SearchPlayerDTO search = playerList.getResults().get(0); // get the first result from the search
         PlayerDTO player = apiClient.getPlayerData(search.getId()); // use the player's id to get their player data
 
-        PlayerSession session = new PlayerSession(player);
+        if (player == null || player.getRatings().isEmpty() || player.getRatings() == null){
+            BotMessages.sendError(event.getHook(), "Failed to fetch player data");
+            return;
+        }
+
+        PlayerSession session = new PlayerSession(player); // create a new player session
 
         EmbedBuilder embed = buildEmbed(session);
 
@@ -68,7 +81,7 @@ public class SlashPlayer implements SlashCommand {
                 .queue(message -> {
                     sessions.put(message.getId(), session);
                 });
-    };
+    }
 
     @Override
     public void handleButton(ButtonInteractionEvent event) {
@@ -105,10 +118,11 @@ public class SlashPlayer implements SlashCommand {
                 "/" + player.getRatings().size());
 
         embed.addField("Rank", rating.getRank(), true);
-        embed.addField("Rating", String.valueOf(Math.round(rating.getRating())), true);
+        embed.addField("Rating", String.valueOf(Math.round(rating.getRating())) + ((rating.getRank().equals("Vanquisher")) ? " DR" : " RP"), true);
+        embed.addField("Top", "#" + String.valueOf(rating.getTopChar()), true);
         embed.addField("Matches", String.valueOf(rating.getMatchCount()), true);
 
-        embed.addField("Top Rating", String.valueOf(Math.round(rating.getTopRating().getValue())) + " - "
+        embed.addField("Top Rating", String.valueOf(Math.round(rating.getTopRating().getValue())) + ((rating.getRank().equals("Vanquisher")) ? " DR" : " RP") + " - "
                 + rating.getTopRating().getTimestamp(), false);
 
         embed.setThumbnail(Assets.RANK_URLS.get(rating.getRank()));
@@ -119,6 +133,5 @@ public class SlashPlayer implements SlashCommand {
 
         return embed;
     }
-
 
 }
