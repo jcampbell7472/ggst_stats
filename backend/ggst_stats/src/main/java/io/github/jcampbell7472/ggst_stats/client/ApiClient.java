@@ -15,19 +15,21 @@ public class ApiClient {
         SearchPlayerListDTO searchResult = null;
 
         try {
+            System.out.println("Searching for player ID...");
             searchResult = restClient.get()
                     .uri("https://puddle.farm/api/player/search?search_string={str}&exact=true", str)
                     .retrieve()
                     .body(SearchPlayerListDTO.class);
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println("Error retrieving player ID");
             return null;
         }
-
+        System.out.println("Success!");
         return searchResult;
     }
 
     public PlayerDTO getPlayerData(long id) {
+        System.out.println("Searching for player data...");
         PlayerDTO playerData = null;
 
         try {
@@ -36,10 +38,11 @@ public class ApiClient {
                     .retrieve()
                     .body(PlayerDTO.class);
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println("Error retrieving player data");
             return null;
         }
 
+        System.out.println("Success!");
         return playerData;
     }
 

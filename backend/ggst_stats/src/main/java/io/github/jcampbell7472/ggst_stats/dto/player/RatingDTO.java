@@ -25,17 +25,27 @@ public class RatingDTO {
     @JsonSetter("rating")
     public void setRating(Float rating) {
         this.rating = rating;
-        if (checkVanquisher(rating)) {
+        if(rating != null && rating > 1_000_000){
             this.rating = rating % 1_000_000;
-            this.rank = "Vanquisher";
-        } else {
-            this.rank = checkRank(this.rating);
+            if(this.rating<1600){
+                this.rank = "Vanquisher";
+            }
+            else if(this.rating<1700){
+                this.rank = "Vanquisher I Ignis";
+            }
+            else if(this.rating<1800){
+                this.rank = "Vanquisher II Virtus";
+            }
+            else if(this.rating<1900){
+                this.rank = "Vanquisher III Vindex";
+            }
+            else{
+                this.rank = "Vanquisher III Vindex";
+            }
         }
-    }
-
-     // method to check that the rating is vanquisher or not
-    public boolean checkVanquisher(Float rating) {
-        return rating != null && rating > 1_000_000;
+        else{
+            this.rank = checkRank(rating);
+        }
     }
 
     private String checkRank(Float rating) {

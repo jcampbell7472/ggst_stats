@@ -8,7 +8,6 @@ import io.github.jcampbell7472.ggst_stats.bot.DiscordBot;
 
 @SpringBootApplication
 public class GgstStatsApplication {
-
     public static void main(String[] args) throws Exception {
         ConfigurableApplicationContext context =
                 SpringApplication.run(GgstStatsApplication.class, args);

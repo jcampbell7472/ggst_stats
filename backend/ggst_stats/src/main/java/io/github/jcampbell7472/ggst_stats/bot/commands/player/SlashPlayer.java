@@ -72,17 +72,18 @@ public class SlashPlayer implements SlashCommand {
 
         PlayerSession session = new PlayerSession(player); // create a new player session
 
-        EmbedBuilder embed = buildEmbed(session);
+        EmbedBuilder embed = buildEmbed(session); //build the embed using the current session
 
-        event.getHook().sendMessageEmbeds(embed.build())
-                .addActionRow(
+        event.getHook().sendMessageEmbeds(embed.build()) //send the embed to discord
+                .addActionRow( //add buttons
                         Button.primary("player:prev", "⬅️"),
                         Button.primary("player:next", "➡️"))
                 .queue(message -> {
-                    sessions.put(message.getId(), session);
+                    sessions.put(message.getId(), session); //add the session to the cache
                 });
     }
 
+    //method called when a button is used
     @Override
     public void handleButton(ButtonInteractionEvent event) {
 
@@ -111,21 +112,31 @@ public class SlashPlayer implements SlashCommand {
         PlayerDTO player = session.getPlayer();
         RatingDTO rating = session.getCurrentRating();
 
+        
+
         EmbedBuilder embed = new EmbedBuilder();
 
         embed.setTitle(player.getName() + " — " + rating.getCharacter());
-        embed.setDescription("Character " + (session.getIndex() + 1) +
-                "/" + player.getRatings().size());
+        embed.setDescription("Character " + (session.getIndex() + 1) + "/" + player.getRatings().size());
 
-        embed.addField("Rank", rating.getRank(), true);
-        embed.addField("Rating", String.valueOf(Math.round(rating.getRating())) + ((rating.getRank().equals("Vanquisher")) ? " DR" : " RP"), true);
-        embed.addField("Top", "#" + String.valueOf(rating.getTopChar()), true);
+        if(player.getTopGlobal()>=1&&player.getTopGlobal()<=100&&rating.getRating()>1800&&rating.getRank().contains("Vanquisher")){
+            embed.setThumbnail(Assets.RANK_URLS.get("Imperius"));
+            embed.addField("Rank", "Imperius", true);
+            embed.addField("Rating", String.valueOf(Math.round(rating.getRating())) + ((rating.getRank().contains("Vanquisher")||rating.getRank().contains("Imperious")) ? " DR" : " RP"), true);
+        }
+        else{
+            embed.setThumbnail(Assets.RANK_URLS.get(rating.getRank()));
+            embed.addField("Rank", rating.getRank(), true);
+            embed.addField("Rating", String.valueOf(Math.round(rating.getRating())) + ((rating.getRank().contains("Vanquisher")||rating.getRank().contains("Imperious")) ? " DR" : " RP"), true);
+        }
+
+        if(rating.getTopChar()>0){embed.addField("Top", "#" + String.valueOf(rating.getTopChar()), true);}
+        if(player.getTopGlobal()!=null&&player.getTopGlobal()!=0&&rating.getRating()>1800&&rating.getRank().contains("Vanquishergit")){embed.addField("Top Global", "#" + String.valueOf(player.getTopGlobal()),true);}
+
         embed.addField("Matches", String.valueOf(rating.getMatchCount()), true);
 
-        embed.addField("Top Rating", String.valueOf(Math.round(rating.getTopRating().getValue())) + ((rating.getRank().equals("Vanquisher")) ? " DR" : " RP") + " - "
-                + rating.getTopRating().getTimestamp(), false);
+        if(rating.getTopRating().getValue()>0){embed.addField("Top Rating", String.valueOf(Math.round(rating.getTopRating().getValue())) + ((rating.getRank().equals("Vanquisher")) ? " DR" : " RP") + " - " + rating.getTopRating().getTimestamp(), false);}
 
-        embed.setThumbnail(Assets.RANK_URLS.get(rating.getRank()));
         embed.setImage(Assets.CHARACTER_URLS.get(rating.getCharShort()));
 
         embed.setColor(Assets.getRankColor(rating.getRank()));

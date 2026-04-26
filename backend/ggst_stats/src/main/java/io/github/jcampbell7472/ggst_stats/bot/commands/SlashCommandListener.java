@@ -26,6 +26,7 @@ public class SlashCommandListener extends ListenerAdapter {
     //called every time a slash command is used
     @Override
     public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
+        System.out.println("Slash command invoked by "+ event.getUser().getName());
         SlashCommand cmd = commands.get(event.getName()); //get the command from commands map corresponding to the name of the event
         if (cmd != null) {
             cmd.handleSlash(event); //call handleSlash of that command, passing the event
@@ -35,6 +36,7 @@ public class SlashCommandListener extends ListenerAdapter {
     //called when a button interaction is used
     @Override
     public void onButtonInteraction(ButtonInteractionEvent event) {
+        System.out.println("Button used by "+ event.getUser().getName());
         String id = event.getButton().getId(); //get the id of the button as a String
 
         if (id == null || !id.contains(":")) //check that the button is not null and contains ":"
